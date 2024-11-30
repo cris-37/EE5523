@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: resume-manager
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: cris37/backend-image:latest
+        ports:
+        - containerPort: 5000
+        env:
+        - name: UPLOAD_FOLDER
+          value: "/uploads"
+        volumeMounts:
+        - name: upload-volume
+          mountPath: /uploads
+      volumes:
+      - name: upload-volume
+        persistentVolumeClaim:
+          claimName: upload-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: resume-manager
+spec:
+  selector:
+    app: backend
+  ports:
+  - protocol: TCP
+    port: 5000
+    targetPort: 5000
+  type: ClusterIP
